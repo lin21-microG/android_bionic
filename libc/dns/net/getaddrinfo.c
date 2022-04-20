@@ -83,6 +83,7 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 #include <sys/socket.h>
+#include <sys/system_properties.h>
 #include <sys/un.h>
 #include <net/if.h>
 #include <netinet/in.h>
@@ -2126,6 +2127,11 @@ _files_getaddrinfo(void *rv, void *cb_data, va_list ap)
 
 	name = va_arg(ap, char *);
 	pai = va_arg(ap, struct addrinfo *);
+
+	char value[PROP_VALUE_MAX] = { 0 };
+	if (__system_property_get("persist.security.hosts_disable", value) != 0)
+		if (atoi(value) != 0 && strcmp(name, "localhost") != 0 && strcmp(name, "ip6-localhost") != 0)
+			return NS_NOTFOUND;
 
 	memset(&sentinel, 0, sizeof(sentinel));
 	cur = &sentinel;
